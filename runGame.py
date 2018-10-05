@@ -86,7 +86,8 @@ def callback(ccgame):
     simpleGreedyAgent1 = SimpleGreedyAgent(ccgame)
     randomAgent = RandomAgent(ccgame)
     teamAgent = Frappuccino(ccgame)
-    simulateMultipleGames({2: simpleGreedyAgent1, 1: teamAgent}, 3, ccgame)
+    alpha_beta = Alpha_beta(ccgame)
+    simulateMultipleGames({2: alpha_beta, 1: teamAgent}, 4, ccgame)
    
 
 

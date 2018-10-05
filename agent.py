@@ -1,5 +1,5 @@
 import random, re, datetime
-import copy
+import time
 
 class Agent(object):
     def __init__(self, game):
@@ -35,7 +35,7 @@ class SimpleGreedyAgent(Agent):
 
 
 class Frappuccino(Agent):
-    def heuristic(self, state, player):
+    def evaluation(self, state, player):
         board = state[1]
         pos_player1_list = board.getPlayerPiecePositions(1)
         pos_player2_list = board.getPlayerPiecePositions(2)
@@ -66,7 +66,7 @@ class Frappuccino(Agent):
                     first_flag = False
             return value
         if layer <= 1:
-            return self.heuristic(state,player)
+            return self.evaluation(state,player)
     
     def min_value(self, state, player, layer):
         if layer > 1:
@@ -82,9 +82,10 @@ class Frappuccino(Agent):
                     first_flag = False
             return value
         if layer <= 1:
-            return self.heuristic(state,player)
+            return self.evaluation(state,player)
 
     def getAction(self, state):
+        start = time.clock()
         legal_actions = self.game.actions(state)
         self.action = random.choice(legal_actions)
         player = self.game.player(state)
@@ -102,7 +103,87 @@ class Frappuccino(Agent):
                 self.action = action
                 print('update',self.action)
         print('finish',self.action)
+        print('time:',time.clock() - start)
 
+
+class Alpha_beta(Agent):
+    def evaluation(self, state, player):
+        board = state[1]
+        pos_player1_list = board.getPlayerPiecePositions(1)
+        pos_player2_list = board.getPlayerPiecePositions(2)
+        h_value = 0
+        if player == 1:
+            for col_player1 in pos_player1_list:
+                h_value -= col_player1[0] 
+            for col_player2 in pos_player2_list:
+                h_value -= col_player2[0]
+        else:
+            for col_player1 in pos_player1_list:
+                h_value += col_player1[0]
+            for col_player2 in pos_player2_list:
+                h_value += col_player2[0]
+        return h_value
+
+    def max_value(self, state, a, b, player, layer):
+        if layer > 1:
+            layer -= 1
+            first_flag = True
+            legal_actions = self.game.actions(state)
+            value = 0
+            for action in legal_actions:
+                state_after = self.game.succ(state,action)
+                min_v = self.min_value(state_after,a,b,player,layer)
+                if first_flag or  min_v > value:
+                    value = min_v
+                    first_flag = False
+                    if value > b: return value
+                    a = max(a, value)
+            return value
+        if layer <= 1:
+            return self.evaluation(state,player)
+
+    def min_value(self, state, a, b, player, layer):
+        if layer > 1:
+            layer -= 1
+            first_flag = True
+            legal_actions = self.game.actions(state)
+            value = 0
+            for action in legal_actions:
+                state_after = self.game.succ(state,action)
+                max_v = self.max_value(state_after,a,b,player,layer)
+                if first_flag or max_v < value:
+                    value = max_v
+                    first_flag = False
+                    if value < a: return value
+                    b = min(b, value)
+            return value
+        if layer <= 1:
+            return self.evaluation(state,player)
+        
+    def getAction(self, state):
+        start = time.clock()
+        legal_actions = self.game.actions(state)
+        self.action = random.choice(legal_actions)
+        player = self.game.player(state)
+        layer = 3
+        a = -10000
+        b = 10000
+
+        layer -= 1
+        first_flag = True
+        evaluation_candidate = 0
+        for action in legal_actions:
+            state_after = self.game.succ(state,action)
+            min_v = self.min_value(state_after,a,b,player,layer)
+            if first_flag or min_v > evaluation_candidate:
+                evaluation_candidate = min_v
+                first_flag = False
+                #if evaluation_candidate > b: break
+                a = max(a,evaluation_candidate)
+                self.action = action
+                print('update',self.action)
+        print('finish',self.action)
+        print('time:',time.clock() - start)
 
 
 
