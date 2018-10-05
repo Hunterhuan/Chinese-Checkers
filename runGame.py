@@ -41,7 +41,7 @@ def runGame(ccgame, agents):
         player = ccgame.player(state)
         agent = agents[player]
         # function agent.getAction() modify class member action
-        timeout(agent.getAction, state)
+        timeout(agent.getAction, state, 10)
         legal_actions = ccgame.actions(state)
         if agent.action not in legal_actions:
             agent.action = random.choice(legal_actions)
@@ -85,8 +85,8 @@ def callback(ccgame):
     simpleGreedyAgent = SimpleGreedyAgent(ccgame)
     simpleGreedyAgent1 = SimpleGreedyAgent(ccgame)
     randomAgent = RandomAgent(ccgame)
-    teamAgent = TeamNameMinimaxAgent(ccgame)
-    simulateMultipleGames({1: simpleGreedyAgent1, 2: simpleGreedyAgent}, 10, ccgame)
+    teamAgent = Frappuccino(ccgame)
+    simulateMultipleGames({2: simpleGreedyAgent1, 1: teamAgent}, 3, ccgame)
    
 
 
