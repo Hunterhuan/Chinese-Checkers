@@ -41,7 +41,7 @@ def runGame(ccgame, agents):
         player = ccgame.player(state)
         agent = agents[player]
         # function agent.getAction() modify class member action
-        timeout(agent.getAction, state, 2)
+        timeout(agent.getAction, state)
         legal_actions = ccgame.actions(state)
         if agent.action not in legal_actions:
             agent.action = random.choice(legal_actions)
@@ -83,12 +83,9 @@ def simulateMultipleGames(agents_dict, simulation_times, ccgame):
 def callback(ccgame):
     B.destroy()
     simpleGreedyAgent = SimpleGreedyAgent(ccgame)
-    simpleGreedyAgent1 = SimpleGreedyAgent(ccgame)
     randomAgent = RandomAgent(ccgame)
     teamAgent = Frappuccino(ccgame)
-    alpha_beta = Alpha_beta(ccgame)
-    ItDe = Iteration_deepening(ccgame)
-    simulateMultipleGames({1: simpleGreedyAgent, 2: ItDe}, 10, ccgame)
+    simulateMultipleGames({1: simpleGreedyAgent, 2: teamAgent}, 10, ccgame)
    
 
 

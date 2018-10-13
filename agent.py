@@ -1,7 +1,6 @@
 import random, re, datetime
-import time
-from queue import PriorityQueue
 import numpy as np
+
 
 class Agent(object):
     def __init__(self, game):
@@ -36,84 +35,13 @@ class SimpleGreedyAgent(Agent):
         self.action = random.choice(max_actions)
 
 
+
 class Frappuccino(Agent):
     def evaluation(self, state, player):
         board = state[1]
         pos_player1_list = board.getPlayerPiecePositions(1)
         pos_player2_list = board.getPlayerPiecePositions(2)
         h_value = 0
-        if player == 1:
-            for col_player1 in pos_player1_list:
-                h_value -= col_player1[0] 
-            for col_player2 in pos_player2_list:
-                h_value -= col_player2[0]
-        else:
-            for col_player1 in pos_player1_list:
-                h_value += col_player1[0]
-            for col_player2 in pos_player2_list:
-                h_value += col_player2[0]
-        return h_value
-
-    def max_value(self, state, player, layer):
-        if layer > 1:
-            layer -= 1
-            first_flag = True
-            legal_actions = self.game.actions(state)
-            value = 0
-            for action in legal_actions:
-                state_after = self.game.succ(state,action)
-                min_v = self.min_value(state_after,player,layer)
-                if first_flag or  min_v > value:
-                    value = min_v
-                    first_flag = False
-            return value
-        if layer <= 1:
-            return self.evaluation(state,player)
-    
-    def min_value(self, state, player, layer):
-        if layer > 1:
-            layer -= 1
-            first_flag = True
-            legal_actions = self.game.actions(state)
-            value = 0
-            for action in legal_actions:
-                state_after = self.game.succ(state,action)
-                max_v = self.max_value(state_after,player,layer)
-                if first_flag or max_v < value:
-                    value = max_v
-                    first_flag = False
-            return value
-        if layer <= 1:
-            return self.evaluation(state,player)
-
-    def getAction(self, state):
-        start = time.clock()
-        legal_actions = self.game.actions(state)
-        self.action = random.choice(legal_actions)
-        player = self.game.player(state)
-        layer = 3
-
-        layer -= 1
-        first_flag = True
-        evaluation_candidate = 0
-        for action in legal_actions:
-            state_after = self.game.succ(state,action)
-            min_v = self.min_value(state_after,player,layer)
-            if first_flag or min_v > evaluation_candidate:
-                evaluation_candidate = min_v
-                first_flag = False
-                self.action = action
-                print('update',self.action)
-        print('finish',self.action)
-        print('time mm:',time.clock() - start)
-
-
-class Alpha_beta(Agent):
-    def evaluation(self, state, player):
-        board = state[1]
-        pos_player1_list = board.getPlayerPiecePositions(1)
-        pos_player2_list = board.getPlayerPiecePositions(2)
-        h_value = 0
         board_size = self.game.size
         if player == 1:
             for col_player1 in pos_player1_list:
@@ -127,91 +55,9 @@ class Alpha_beta(Agent):
                 h_value -= (2 * board_size - col_player2[0]) ** 2
         return h_value
 
-    def max_value(self, state, a, b, player, layer):
-        if layer > 1:
-            layer -= 1
-            first_flag = True
-            legal_actions = self.game.actions(state)
-            value = 0
-            for action in legal_actions:
-                state_after = self.game.succ(state,action)
-                min_v = self.min_value(state_after,a,b,player,layer)
-                if first_flag or  min_v > value:
-                    value = min_v
-                    first_flag = False
-                    if value > b: return value
-                    a = max(a, value)
-            return value
-        if layer <= 1:
-            return self.evaluation(state,player)
-
-    def min_value(self, state, a, b, player, layer):
-        if layer > 1:
-            layer -= 1
-            first_flag = True
-            legal_actions = self.game.actions(state)
-            value = 0
-            for action in legal_actions:
-                state_after = self.game.succ(state,action)
-                max_v = self.max_value(state_after,a,b,player,layer)
-                if first_flag or max_v < value:
-                    value = max_v
-                    first_flag = False
-                    if value < a: return value
-                    b = min(b, value)
-            return value
-        if layer <= 1:
-            return self.evaluation(state,player)
-        
-    def getAction(self, state):
-        start = time.clock()
-        legal_actions = self.game.actions(state)
-        self.action = random.choice(legal_actions)
-        player = self.game.player(state)
-        layer = 3
-        a = -10000
-        b = 10000
-
-        layer -= 1
-        first_flag = True
-        evaluation_candidate = None
-        for action in legal_actions:
-            state_after = self.game.succ(state,action)
-            min_v = self.min_value(state_after,a,b,player,layer)
-            if first_flag or min_v >= evaluation_candidate:
-                if not first_flag and min_v == evaluation_candidate and random.choice([True,False]): continue
-                evaluation_candidate = min_v
-                first_flag = False
-                #if evaluation_candidate > b: break
-                a = max(a,evaluation_candidate)
-                self.action = action
-                print('update',self.action)
-        print('finish',self.action)
-        print('time ab:',time.clock() - start)
-
-
-
-class Iteration_deepening(Agent):
-    def evaluation(self, state, player):
-        board = state[1]
-        pos_player1_list = board.getPlayerPiecePositions(1)
-        pos_player2_list = board.getPlayerPiecePositions(2)
-        h_value = 0
-        board_size = self.game.size
-        if player == 1:
-            for col_player1 in pos_player1_list:
-                h_value -= col_player1[0] ** 2
-            for col_player2 in pos_player2_list:
-                h_value += (2 * board_size - col_player2[0]) ** 2
-        else:
-            for col_player1 in pos_player1_list:
-                h_value += col_player1[0] ** 2
-            for col_player2 in pos_player2_list:
-                h_value -= (2 * board_size - col_player2[0]) ** 2
-        return h_value
-
-    def max_value(self, state, a, b, player, layer):
-        assert state[0] == player
+    def max_value(self, state, a, b, player, layer, tobeend = False):
+        if tobeend: state = (3-state[0],state[1])
+        #assert state[0] == player
         EV = float('-inf')
         if layer == 1:
             for action in self.game.actions(state):
@@ -222,12 +68,19 @@ class Iteration_deepening(Agent):
                     if EV > b: return EV
                     a = max(a, EV)
         elif layer > 1:
-            for action in self.game.actions(state):
-                state_after = self.game.succ(state,action)
+            actions = self.game.actions(state)
+            state_after_dict = {}
+            for action in actions:
+                state_after_dict[action] = self.game.succ(state,action)
+            action_state_tuple = sorted(state_after_dict.items(),key = lambda tuple: self.get_nextEV(state,tuple[0],tuple[1],player),reverse = True)
+            for action,state_after in action_state_tuple:
                 if self.isend(state_after,player):
-                    nextEV = self.get_nextEV(state,action,state_after,player)
+                    nextEV = self.get_nextEV(state,action,state_after,player) + (layer-1)*30
                 else:
-                    nextEV = self.min_value(state_after, a, b, player, layer - 1)
+                    if tobeend:
+                        nextEV = self.max_value(state_after, a, b, player, layer - 1, True)
+                    else:
+                        nextEV = self.min_value(state_after, a, b, player, layer - 1)
                 if nextEV > EV:
                     EV = nextEV
                     if EV > b: return EV
@@ -235,7 +88,7 @@ class Iteration_deepening(Agent):
         return EV
 
     def min_value(self, state, a, b, player, layer):
-        assert state[0] == 3-player
+        #assert state[0] == 3-player
         EV = float('inf')
         if layer == 1:
             for action in self.game.actions(state):
@@ -246,10 +99,15 @@ class Iteration_deepening(Agent):
                     if EV < a: return EV
                     b = min(b, EV)
         elif layer > 1:
-            for action in self.game.actions(state):
-                state_after = self.game.succ(state,action)
+            actions = self.game.actions(state)
+            state_after_dict = {}
+            for action in actions:
+                state_after_dict[action] = self.game.succ(state,action)
+            action_state_tuple = sorted(state_after_dict.items(),key = lambda tuple: self.get_nextEV(state,tuple[0],tuple[1],player),reverse = False)
+            for action,state_after in action_state_tuple:
+                #state_after = self.game.succ(state,action)
                 if self.isend(state_after,3-player):
-                    nextEV = self.get_nextEV(state,action,state_after,player)
+                    nextEV = self.get_nextEV(state,action,state_after,player) - (layer-1)*30
                 else:
                     nextEV = self.max_value(state_after, a, b, player, layer - 1)
                 if nextEV < EV:
@@ -270,6 +128,7 @@ class Iteration_deepening(Agent):
                 nextEV = self.evaluation(state_after,player)
             self.dict[hash_state_after] = nextEV
         return nextEV
+
 
     def hash_dict(self, state):
         board = state[1]
@@ -316,13 +175,24 @@ class Iteration_deepening(Agent):
                         return False
             return True
 
-        
+    def tobeend(self, state, player):
+        board = state[1]
+        pos_player1_list = board.getPlayerPiecePositions(1)
+        pos_player2_list = board.getPlayerPiecePositions(2)
+        bottom1 = max([piece[0] for piece in pos_player1_list])
+        top2 = min([piece[0] for piece in pos_player2_list])
+        if player == 1:
+            return bottom1 < top2
+        else:
+            return top2 > bottom1
+    
     def getAction(self, state):
         self.dict = {}
         player = self.game.player(state)
         EVinit = self.evaluation(state,player)
         self.dict[self.hash_dict(state)] = EVinit
         EVcandidate = float('-inf')
+        tobeend = self.tobeend(state, player)
 
         action_list = self.game.actions(state)
         random.shuffle(action_list)
@@ -338,25 +208,27 @@ class Iteration_deepening(Agent):
                 if newEV == EVcandidate and random.choice([True,False]): continue
                 EVcandidate = newEV
                 self.action = action
-                print('update', 1, EVcandidate)
+                #print('update', 1, EVcandidate)
 
         L_last = 1
         for L in range(2,50):
-            print(L)
+            #print(L)
             a = float('-inf')
             b = float('inf')
             action_EV_index = action_EV.argsort()
             for i in range(len(action_EV_index) - 1, -1, -1):
                 state_after = self.game.succ(state,action_list[action_EV_index[i]])
                 if self.isend(state_after,player):
-                    newEV = self.get_nextEV(state,action_list[action_EV_index[i]],state_after,player)
+                    newEV = self.get_nextEV(state,action_list[action_EV_index[i]],state_after,player) + (L-1)*30
                 else:
-                    newEV = self.min_value(state_after, a, b, player, L - 1)
+                    if tobeend:
+                        newEV = self.max_value(state_after, a, b, player, L - 1, True)
+                    else:
+                        newEV = self.min_value(state_after, a, b, player, L - 1)
                 action_EV[action_EV_index[i]] = newEV
                 if newEV > EVcandidate or L > L_last:
-                    #if newEV == EVcandidate and random.choice([True,False]): continue
                     EVcandidate = newEV
                     self.action = action_list[action_EV_index[i]]
-                    print('update', L, EVcandidate)
+                    #print('update', L, EVcandidate)
                     a = max(a, EVcandidate)
                 L_last = L
